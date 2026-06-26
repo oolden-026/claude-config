@@ -1,0 +1,5 @@
+# Nothing sensitive here, but exclude OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp

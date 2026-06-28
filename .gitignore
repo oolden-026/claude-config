@@ -1,0 +1,10 @@
+# Exclude everything by default
+*
+
+# Allow specific files and directories
+!grasshopper-components/
+!grasshopper-components/**
+!settings.json
+!statustracker.md
+!statusline-command.sh
+!.gitignore

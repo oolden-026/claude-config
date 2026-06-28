@@ -3,11 +3,11 @@ A 4-line statusline for Claude Code showing model/context, rate limit bars, acti
 
 [Sonnet 4.6] 📁 GrasshopperScripts | 🌿 master
 ███░░░░░░░ ctx: 30% | $0.84 | ⏱️ 68m 36s
-5h █████░░░ 64% → 11:40 | 7d █░░░░░░░ 10% → Jun 21 | wk: $21.73
+5h █████░░░ 64% → 1h 23m | 7d █░░░░░░░ 10% → 2d 15h | wk: $21.73
 🤖 1 agent(s): Fix statusline display
 Line 1 — model, working directory, git branch
 Line 2 — context window bar, session cost, session duration
-Line 3 — 5-hour and 7-day rate limit bars with reset times (matches /usage), plus rolling 7-day cost
+Line 3 — 5-hour and 7-day rate limit bars with countdown to reset (e.g. → 1h 23m, → 2d 15h), plus rolling 7-day cost
 Line 4 — active background agents with their names, or 💤 when none
 Bars turn yellow at 70% and red at 90%.
 
@@ -76,16 +76,23 @@ bar_color() {
 }
 
 RESET_FMTS=$(python3 - "$RL_5H_RESET" "$RL_7D_RESET" <<'PYEOF' 2>/dev/null
-import sys
-from datetime import datetime, timezone, timedelta
-import time
+import sys, time
 t5, t7 = int(sys.argv[1]), int(sys.argv[2])
-offset = datetime.fromtimestamp(0) - datetime.utcfromtimestamp(0)
-tz = timezone(offset)
-d5 = datetime.fromtimestamp(t5, tz).strftime('%H:%M')
-d7 = datetime.fromtimestamp(t7, tz)
-d7s = d7.strftime('%b') + ' ' + str(d7.day)
-print(d5 + '|' + d7s)
+now = int(time.time())
+def fmt_remaining(ts):
+    diff = ts - now
+    if diff <= 0:
+        return 'now'
+    h = diff // 3600
+    m = (diff % 3600) // 60
+    if h >= 24:
+        d = h // 24
+        return f'{d}d {h % 24}h'
+    elif h > 0:
+        return f'{h}h {m}m'
+    else:
+        return f'{m}m'
+print(fmt_remaining(t5) + '|' + fmt_remaining(t7))
 PYEOF
 )
 FMT_5H=$(echo "$RESET_FMTS" | cut -d'|' -f1)

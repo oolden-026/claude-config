@@ -7,10 +7,10 @@ DIR=$(echo "$input" | jq -r '.workspace.current_dir // .cwd // empty')
 COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
 DURATION_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
-RL_5H_PCT=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // 0')
-RL_5H_RESET=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // 0')
-RL_7D_PCT=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // 0')
-RL_7D_RESET=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // 0')
+RL_5H_PCT=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // 0' | cut -d. -f1)
+RL_5H_RESET=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // 0' | cut -d. -f1)
+RL_7D_PCT=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // 0' | cut -d. -f1)
+RL_7D_RESET=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // 0' | cut -d. -f1)
 SESSION_ID=$(echo "$input" | jq -r '.session_id // empty')
 
 CYAN='\033[36m'; GREEN='\033[32m'; YELLOW='\033[33m'; RED='\033[31m'; PURPLE='\033[35m'; RESET='\033[0m'
@@ -49,21 +49,18 @@ bar_color() {
   else echo "$GREEN"; fi
 }
 
-RESET_FMTS=$(python3 - "$RL_5H_RESET" "$RL_7D_RESET" <<'PYEOF' 2>/dev/null
-import sys
-from datetime import datetime, timezone, timedelta
-import time
-t5, t7 = int(sys.argv[1]), int(sys.argv[2])
-offset = datetime.fromtimestamp(0) - datetime.utcfromtimestamp(0)
-tz = timezone(offset)
-d5 = datetime.fromtimestamp(t5, tz).strftime('%H:%M')
-d7 = datetime.fromtimestamp(t7, tz)
-d7s = d7.strftime('%b') + ' ' + str(d7.day)
-print(d5 + '|' + d7s)
-PYEOF
-)
-FMT_5H=$(echo "$RESET_FMTS" | cut -d'|' -f1)
-FMT_7D=$(echo "$RESET_FMTS" | cut -d'|' -f2)
+fmt_remaining() {
+  local ts=$1 now diff h m d
+  now=$(date +%s 2>/dev/null || echo 0)
+  diff=$(( ts - now ))
+  if [ "$diff" -le 0 ]; then echo "now"; return; fi
+  h=$(( diff / 3600 )); m=$(( (diff % 3600) / 60 ))
+  if [ "$h" -ge 24 ]; then d=$(( h / 24 )); echo "${d}d $((h % 24))h"
+  elif [ "$h" -gt 0 ]; then echo "${h}h ${m}m"
+  else echo "${m}m"; fi
+}
+FMT_5H=$(fmt_remaining "$RL_5H_RESET")
+FMT_7D=$(fmt_remaining "$RL_7D_RESET")
 
 BAR_5H=$(make_bar "$RL_5H_PCT")
 BAR_7D=$(make_bar "$RL_7D_PCT")

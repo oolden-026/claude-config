@@ -16,3 +16,4 @@ One file per component. Read the file for full code + wire details.
 | FilterAptsByCorrAndKern | [FilterAptsByCorrAndKern.md](FilterAptsByCorrAndKern.md) | Selects apartments with BOTH a corridor wall AND a kern-block wall — outputs 76 matching assoc path strings and a `{b;f;u;inst}` DataTree |
 | BottomBrepsToTopoFaces | [BottomBrepsToTopoFaces.md](BottomBrepsToTopoFaces.md) | Filters SubLayer:Geometry for `06: Bottom` sublayer and converts each planar Brep floor surface to a `topologicpy.Face` object |
 | FireStairFloorCheck_v2 | [FireStairFloorCheck_v2.md](FireStairFloorCheck_v2.md) | Merged: counts apts from assoc paths, flags floors needing fire stair, generates corridor surfaces, finds corridor-exterior overlap edges, outputs FloorPaths |
+| AddToDatabase | [AddToDatabase.md](AddToDatabase.md) | Adds new geometry+path entries to the PancakeDatabase: counts existing unique slots per (Building,Floor), assigns next slot index, outputs augmented path+value lists |
